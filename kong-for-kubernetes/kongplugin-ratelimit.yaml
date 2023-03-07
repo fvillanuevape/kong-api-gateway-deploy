@@ -1,0 +1,15 @@
+#Rate Limit Kong Pluging
+# Counter key: IP
+# Limit: 5
+# Time: 
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: rl-by-ip
+  annotations:
+    kubernetes.io/ingress.class: kong
+config:
+  minute: 1
+  limit_by: ip
+  policy: local
+plugin: rate-limiting

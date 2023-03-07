@@ -1,0 +1,24 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongClusterPlugin
+metadata:
+  name: response-transformer-example
+  annotations:
+    kubernetes.io/ingress.class: kong 
+  labels:
+    global: "true"
+config: 
+  remove:
+    headers:
+    - X-Powered-By
+    - X-AspNet-Version
+    - Via
+    - Server
+  append:
+    headers:
+    - X-Frame-Options:DENY
+    - X-XSS-Protection:1; mode=block
+    - Strict-Transport-Security:max-age=31536000; includeSubDomains; preload
+    - X-Content-Type-Options:nosniff
+    - Referrer-Policy:no-referrer
+    - Content-Security-Policy:default-src 'none'
+plugin: response-transformer

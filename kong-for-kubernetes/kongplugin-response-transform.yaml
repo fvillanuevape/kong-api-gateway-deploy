@@ -1,0 +1,17 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: response-transformer-advanced-example
+config: 
+  remove:
+    headers:
+    - Server
+  add:
+    headers:
+    - X-Frame-Option:DENY
+    - Strict-Transport-Security:max-age=31536000; includeSubDomains
+  append:
+    headers:
+    - x-existing-header:some_value
+    - x-another-header:some_value
+plugin: response-transformer-advanced

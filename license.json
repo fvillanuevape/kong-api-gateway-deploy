@@ -1,0 +1,16 @@
+{
+    "license": {
+    "version": 1,
+    "signature":"f7fe87f240d93ed1346ed98350bfb9b7f59fd0d3e09be6ab38f92bbb59aeb7ff74d372e1ab048c365d81f44ffd04afa3b6a3d7d63df44df8e504558d4cf8b184",
+    "payload": {
+    "customer":"Kong Education Appsembler Virtual Labs",
+    "license_creation_date":"2022-03-21",
+    "product_subscription":"Kong Enterprise Edition",
+    "support_plan": "None",
+    "admin_seats":"5",
+    "dataplanes":"100",
+    "license_expiration_date":"2023-03-21",
+    "license_key":"0011K000022IA3HQAW_a1V1K0000086RGYUA2"
+    }
+}
+}

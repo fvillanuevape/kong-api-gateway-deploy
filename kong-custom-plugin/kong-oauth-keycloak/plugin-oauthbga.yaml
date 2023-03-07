@@ -1,0 +1,8 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: oauthbga-test
+config:
+  introspection_endpoint: http://localhost:8082/realms/bga-apps-internas-desarrollo/protocol/openid-connect/token/introspect
+  token_header: Authorization
+plugin: oauthbga
