@@ -21,6 +21,9 @@ helm show values kong/kong > values-default.yaml
 # Update Kong API Gateway with helm from file values.yaml
 helm upgrade kong kong/kong -n kong -f values.yaml
 
+# Update Kong API Gateway with helm from file values.yaml
+helm upgrade kong kong/kong -n kong -f valuesdev.yaml
+
 
 # Helm list chart kong
 helm list  -n kong
