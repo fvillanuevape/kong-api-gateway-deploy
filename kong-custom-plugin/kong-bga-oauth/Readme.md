@@ -1,1 +1,0 @@
-# Custom Plugin Token Instrospect with Authorization Server using instrospect endpoint.

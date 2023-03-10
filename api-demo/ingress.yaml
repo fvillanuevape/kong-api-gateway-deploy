@@ -5,7 +5,7 @@ metadata:
   namespace: default
   annotations:
     konghq.com/strip-path: "true"
-    konghq.com/plugins: my-token-plugin
+    konghq.com/plugins: my-token-bgakub 
 spec:
   ingressClassName: kong
   rules:

@@ -1,12 +1,9 @@
  helm repo add kong https://charts.konghq.com
  helm repo update
 
-# Helm 2
-kubectl create namespace kong
-helm install kong/kong
 
 # Helm 3
-
+ kubectl create namespace kong
  helm install kong kong/kong -n kong
 
  
