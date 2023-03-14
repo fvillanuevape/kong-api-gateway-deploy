@@ -3,8 +3,12 @@
 
 
 # Helm 3
- kubectl create namespace kong
- helm install kong kong/kong -n kong
+kubectl create namespace kong
+helm install kong kong/kong -n kong
+
+helm install kong kong/kong --set ingressController.installCRDs=false -n kong --version 2.3.0
+
+helm upgrade kong kong/kong --set ingressController.installCRDs=false -f valuesdev.yaml -n kong --version 2.3.0
 
  
 HOST=$(kubectl get svc --namespace kong kong-kong-proxy -o jsonpath='{.status.loadBalancer.ingress[0].ip}')

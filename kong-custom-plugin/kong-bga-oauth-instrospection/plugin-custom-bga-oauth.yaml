@@ -1,11 +1,12 @@
 apiVersion: configuration.konghq.com/v1
 kind: KongPlugin
 metadata:
-  name: my-token-bga
+  name: token-bga
+  namespace: apps
 config:
-  introspection_endpoint: "http://192.168.1.5:8082/realms/bga-apps-internas-desarrollo/protocol/openid-connect/token/introspect"
+  introspection_endpoint: "ftp://192.168.1.7:8082/realms/bga-apps-internas-desarrollo/protocol/openid-connect/token/introspect"
   client_id: "token-validate"
-  client_secret: "RTwm9orW4DWWhu7NjtXOJsRFQu736Egm"
+  client_secret: "dy8J1cJEi6H79lqtYWhEbP3rxb5R6Vwv"
   token_header: "Authorization"
   https_verify: false
-plugin: bga-token-instrospection
+plugin: oauthinstrospection

@@ -1,0 +1,59 @@
+apiVersion: v1
+data:
+  handler.lua: "-- Custom Plugin Token Instrospect with Authorization Server\r\nlocal
+    http = require \"resty.http\"\r\nlocal cjson = require \"cjson.safe\"\r\nlocal
+    pl_stringx = require \"pl.stringx\"\r\nlocal encode_base64 = ngx.encode_base64\r\n\r\nlocal
+    OAuthInstrospection = {}\r\n\r\nOAuthInstrospection.PRIORITY = 1000\r\nOAuthInstrospection.VERSION
+    = \"1.0.0\"\r\n\r\n-- Function Error Response\r\nlocal function error_response(status,
+    error_type, message, error_detail)\r\n  local json_message = '{\"code\":' .. status
+    .. ',\"errorType\":\"'.. error_type ..'\", \"description\":\"' .. message .. '\",
+    \"errorDetail\":[{\"code\":\"ER0001\",\"description\":\"' .. error_detail ..'\"}]}'\r\n
+    \ return kong.response.exit(status, json_message, {\r\n    [\"Content-Type\"]
+    = \"application/json\"\r\n  })\r\nend\r\n\r\n-- Function Get Value Access Token
+    From header\r\n-- Function remove Bearer\r\nlocal function get_acces_token(header_name)\r\n
+    \ local request_header = kong.request.get_header(header_name)\r\n  kong.log.err(request_header)\r\n
+    \ if not request_header then\r\n    kong.log.err(err,\" ErrorMessageAuthorization
+    header not present or access token invalid.\")\r\n    return error_response(401,\"Technical\",\"Unauthenticated\",\"Request
+    is missing, required Authorization or Access Token invalid.\")\r\n  end\r\n  local
+    token = pl_stringx.replace(request_header, \"Bearer \", \"\", 1)\r\n  return token\r\nend\r\n\r\n--
+    Implement Logic\r\nfunction OAuthInstrospection:access(conf)\r\n\r\n  local access_token
+    = get_acces_token(conf.token_header)\r\n  kong.log.err(\"Access Token: \", access_token)\r\n
+    \ local request_method = \"POST\"\r\n  local uri = conf.introspection_endpoint\r\n\r\n
+    \ -- Send Request Token Instrospect\r\n  local authorization = 'Basic '..encode_base64(conf.client_id..':'..conf.client_secret)\r\n
+    \ local client = http.new()\r\n  local res, err = client:request_uri(uri, {\r\n
+    \   method = request_method,\r\n    body = \"token=\" .. access_token,\r\n    headers
+    = {[\"Authorization\"]= authorization, [\"Content-Type\"] = \"application/x-www-form-urlencoded\"},\r\n
+    \   ssl_verify = conf.https_verify,\r\n  })\r\n  if not res then\r\n    kong.log.err(err)\r\n
+    \   return error_response(501,\"Technical\",\"Service Unvailable\",\"An unexpected
+    error occurred.\")\r\n  end\r\n  local data = cjson.decode(res.body)\r\n  kong.log.err(\"Response
+    Authorization Server Body: \",res.body)\r\n  kong.log.err(\"Response Authorization
+    Server Status: \",res.status)\r\n  kong.log.err(\"Response Authorization Server
+    Headers: \",res.headers)\r\n  kong.log.err(\"Error Authorization Server: \",err)\r\n\r\n
+    \   -- Validate Not Response\r\n  if res.status == 404 then\r\n    kong.log.err(err,
+    \" KeyCloak Realm does not exist, validate exist Realm in Keycloak authorization
+    server.\")\r\n    return error_response(501,\"Technical\",\"Service Unvailable\",\"An
+    unexpected error occurred.\")\r\n  end\r\n  if data[\"error\"] == \"invalid_request\"
+    \ then\r\n    kong.log.err(err, \" KeyCloak invalid_request, validate client_id
+    or client_secret used for instrospect access token.\")\r\n    return error_response(401,\"Technical\",\"UnAuthorized\",\"The
+    resource owner or authorization server denied the request.\")\r\n  end\r\n  --
+    Validate Active Access Token\r\n  \r\n  if data[\"active\"] ~= true then\r\n    return
+    error_response(401,\"Technical\",\"UnAuthorized\",\"The resource owner or authorization
+    server denied the request.\")\r\n  end \r\nend\r\n\r\nreturn OAuthInstrospection"
+  schema.lua: "local url = require \"socket.url\"\r\nlocal function validate_url(value)\r\n
+    \   local parsed_url = url.parse(value)\r\n    if parsed_url.scheme and parsed_url.host
+    then\r\n        parsed_url.scheme = parsed_url.scheme:lower()\r\n        if not
+    (parsed_url.scheme == \"http\" or parsed_url.scheme == \"https\") then\r\n            return
+    false, \"Supported protocols are HTTP and HTTPS\"\r\n        end\r\n    end\r\n\r\n
+    \   return true\r\nend\r\nreturn {\r\n    name = \"oauthinstrospection\",\r\n
+    \   fields = {\r\n      { config = {\r\n          type = \"record\",\r\n          fields
+    = {\r\n            { introspection_endpoint = { type = \"string\", required =
+    true,default = \"roar\",custom_validator=validate_url,}, },\r\n            { client_id
+    \ = { type = \"string\", required = true,default = \"roar\"}, },\r\n            {
+    client_secret  = { type = \"string\", required = true,default = \"roar\"}, },\r\n
+    \           { token_header = { type = \"string\",required = true, default = \"Authorization\",
+    }, },\r\n            { https_verify = { type = \"boolean\",required = true, default
+    = false, }, },\r\n          },\r\n    }, },\r\n  }\r\n}"
+kind: ConfigMap
+metadata:
+  name: kong-plugin-oauthinstrospection
+  namespace: kong

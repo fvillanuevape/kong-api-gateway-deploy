@@ -11,7 +11,7 @@ local function validate_url(value)
     return true
 end
 return {
-    name = "bga-token-instrospection",
+    name = "oauthinstrospection",
     fields = {
       { config = {
           type = "record",
