@@ -6,7 +6,7 @@ local encode_base64 = ngx.encode_base64
 
 local OAuthInstrospection = {}
 
-OAuthInstrospection.PRIORITY = 1000
+OAuthInstrospection.PRIORITY = 1410
 OAuthInstrospection.VERSION = "1.0.0"
 
 -- Function Error Response

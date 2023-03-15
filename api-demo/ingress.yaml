@@ -5,7 +5,7 @@ metadata:
   namespace: apps
   annotations:
     konghq.com/strip-path: "true"
-    konghq.com/plugins: token-bga
+    konghq.com/plugins: token-bga,my-custom-plugin
 spec:
   ingressClassName: kong
   rules:
