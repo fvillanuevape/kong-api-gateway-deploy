@@ -1,0 +1,34 @@
+controller:
+  name: controller
+  image:
+    chroot: false
+    registry: registry.k8s.io
+    image: ingress-nginx/controller
+    tag: "v1.9.4"
+    pullPolicy: IfNotPresent
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: false
+    controllerValue: "k8s.io/ingress-nginx"
+  service:
+    loadBalancerIP: 192.168.48.150
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    ports:
+      http: 80
+      https: 443
+  nodeSelector:
+    kubernetes.io/os: linux
+  healthCheckPath: "/healthz"
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 90Mi
+  admissionWebhooks:
+    patch:
+      kubernetes.io/os: linux
+defaultBackend:
+  nodeSelector:
+    kubernetes.io/os: linux

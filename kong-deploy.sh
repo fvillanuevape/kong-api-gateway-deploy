@@ -4,17 +4,18 @@
 
 # Helm 3
 kubectl create namespace kong
-helm install kong kong/kong -n kong
+helm install kong kong/kong  -f values.yaml -n kong
 
 helm install kong kong/kong --set ingressController.installCRDs=false -n kong --version 2.3.0
 
-helm upgrade kong kong/kong --set ingressController.installCRDs=false -f valuesdev.yaml -n kong --version 2.3.0
-
+helm upgrade kong kong/kong --set ingressController.installCRDs=false -f values.yaml -n kong --version 2.3.0
+ubu
  
 HOST=$(kubectl get svc --namespace kong kong-kong-proxy -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 PORT=$(kubectl get svc --namespace kong kong-kong-proxy -o jsonpath='{.spec.ports[0].port}')
 export PROXY_IP=${HOST}:${PORT}
 curl $PROXY_IP
+
 
 # Obtener default value
 helm show values kong/kong > values-default.yaml

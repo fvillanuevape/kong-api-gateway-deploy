@@ -63,7 +63,7 @@ helm upgrade kong kong/kong --set ingressController.installCRDs=false -f valuesd
 
 ### 3.2 Ejemplo de uso del plugin
 
-```htm
+```html
 apiVersion: configuration.konghq.com/v1
 kind: KongPlugin
 metadata:

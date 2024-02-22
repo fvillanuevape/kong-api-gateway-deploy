@@ -1,9 +1,10 @@
 apiVersion: configuration.konghq.com/v1
 kind: KongClusterPlugin
 metadata:
-  name: response-transformer-example
+  name: response-transformer
+  namespace: apps
   annotations:
-    kubernetes.io/ingress.class: kong 
+    kubernetes.io/ingress.class: kong
   labels:
     global: "true"
 config: 
@@ -13,6 +14,8 @@ config:
     - X-AspNet-Version
     - Via
     - Server
+    - X-Kong-Proxy-Latency
+    - X-Kong-Upstream-Latency
   append:
     headers:
     - X-Frame-Options:DENY

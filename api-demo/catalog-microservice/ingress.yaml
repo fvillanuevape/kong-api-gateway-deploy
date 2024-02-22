@@ -1,20 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: foo
-  namespace: apps
+  name: catalogue
+  namespace: sock-shop
   annotations:
-    konghq.com/strip-path: "true"
-    konghq.com/plugins: demo-jwt,correlation-id,rate-limiting,response-transformer,prometheus
+    konghq.com/strip-path: "true"  
 spec:
   ingressClassName: kong
   rules:
   - http:
       paths:
-      - path: /api/bs/hello-world
+      - path: /
         pathType: Prefix
         backend:
           service:
-            name: aks-helloworld-one
+            name: catalogue
             port:
               number: 80

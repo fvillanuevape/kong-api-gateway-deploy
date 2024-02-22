@@ -1,0 +1,61 @@
+## nginx configuration
+## Ref: https://github.com/kubernetes/ingress-nginx/blob/main/docs/user-guide/nginx-configuration/index.md
+##
+
+## Overrides for generated resource names
+# See templates/_helpers.tpl
+# nameOverride:
+# fullnameOverride:
+controller:
+  name: controller
+  image:
+    chroot: false
+    registry: registry.k8s.io
+    image: ingress-nginx/controller
+    tag: "v1.9.4"
+    pullPolicy: IfNotPresent
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: false
+    controllerValue: "k8s.io/ingress-nginx"
+  service:
+    ports:
+      http: 80
+      https: 443
+  nodeSelector:
+    kubernetes.io/os: linux
+  livenessProbe:
+    httpGet:
+      # should match container.healthCheckPath
+      path: "/healthz"
+      port: 10254
+      scheme: HTTP
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 5
+  readinessProbe:
+    httpGet:
+      # should match container.healthCheckPath
+      path: "/healthz"
+      port: 10254
+      scheme: HTTP
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+  healthCheckPath: "/healthz"
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 90Mi
+  admissionWebhooks:
+    patch:
+      kubernetes.io/os: linux
+defaultBackend:
+  nodeSelector:
+    kubernetes.io/os: linux

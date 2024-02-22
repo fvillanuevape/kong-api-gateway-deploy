@@ -1,0 +1,13 @@
+ingressController:
+  enabled: true
+  ingressClass: kong
+  installCRDs: "false"
+proxy:
+  enabled: true
+  type: LoadBalancer
+  annotations: 
+    "service.beta.kubernetes.io/azure-load-balancer-internal": "true"
+admin:
+  type: LoadBalancer
+  annotations: 
+    "service.beta.kubernetes.io/azure-load-balancer-internal": "true"

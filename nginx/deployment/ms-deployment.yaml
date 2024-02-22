@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-customer
+  namespace: customers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ms-customer
+  template:
+    metadata:
+      labels:
+        app: ms-customer
+    spec:
+      containers:
+      - name: aks-helloworld-one
+        image: mcr.microsoft.com/azuredocs/aks-helloworld:v1
+        ports:
+        - containerPort: 80
+        env:
+        - name: TITLE
+          value: "Welcome to Kong API Gateway Demo"

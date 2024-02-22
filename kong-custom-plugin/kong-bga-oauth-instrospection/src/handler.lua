@@ -4,10 +4,10 @@ local cjson = require "cjson.safe"
 local pl_stringx = require "pl.stringx"
 local encode_base64 = ngx.encode_base64
 
-local OAuthInstrospection = {}
+local OAuthIntrospection = {}
 
-OAuthInstrospection.PRIORITY = 1410
-OAuthInstrospection.VERSION = "1.0.0"
+OAuthIntrospection.PRIORITY = 1410
+OAuthIntrospection.VERSION = "1.0.0"
 
 -- Function Error Response
 local function error_response(status, error_type, message, error_detail)
@@ -31,7 +31,7 @@ local function get_acces_token(header_name)
 end
 
 -- Implement Logic
-function OAuthInstrospection:access(conf)
+function OAuthIntrospection:access(conf)
 
   local access_token = get_acces_token(conf.token_header)
   kong.log.err("Access Token: ", access_token)
@@ -73,4 +73,4 @@ function OAuthInstrospection:access(conf)
   end 
 end
 
-return OAuthInstrospection
+return OAuthIntrospection

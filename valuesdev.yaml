@@ -1,7 +1,5 @@
 # Custom Plugins BGA - From Configmap
 plugins:
   configMaps: 
-  - name: kong-plugin-oauthinstrospection
-    pluginName: oauthinstrospection
   - name: kong-plugin-myheader
     pluginName: myheader

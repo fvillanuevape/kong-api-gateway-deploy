@@ -1,71 +1,196 @@
-# Specify Kong configuration
-# This chart takes all entries defined under `.env` and transforms them into into `KONG_*`
-# environment variables for Kong containers.
-# Their names here should match the names used in https://github.com/Kong/kong/blob/master/kong.conf.default
-# See https://docs.konghq.com/latest/configuration also for additional details
-# Values here take precedence over values from other sections of values.yaml,
-# e.g. setting pg_user here will override the value normally set when postgresql.enabled
-# is set below. In general, you should not set values here if they are set elsewhere.
+deployment:
+  kong:
+    enabled: true
 env:
   database: "off"
+  router_flavor: "traditional"
+  nginx_worker_processes: "2"
+  proxy_access_log: /dev/stdout
+  admin_access_log: /dev/stdout
+  admin_gui_access_log: /dev/stdout
+  portal_api_access_log: /dev/stdout
+  proxy_error_log: /dev/stderr
+  admin_error_log: /dev/stderr
+  admin_gui_error_log: /dev/stderr
+  portal_api_error_log: /dev/stderr
+  prefix: /kong_prefix/
+  headers: "off"
 
-# Specify Kong admin API service and listener configuration
-# Deploy Kong Admin
-admin:
-  # Enable creating a Kubernetes service for the admin API
-  # Disabling this is recommended for most ingress controller configurations
-  # Enterprise users that wish to use Kong Manager with the controller should enable this
-  enabled: false
-  type: LoadBalancer  # LoadBalancer, NodePort
-  # To specify annotations or labels for the admin service, add them to the respective
-  # "annotations" or "labels" dictionaries below.
-  annotations: {}
-  #  service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
-  labels: {}
-
+status:
+  enabled: true
   http:
-    # Enable plaintext HTTP listen for the admin API
-    # Disabling this and using a TLS listen only is recommended for most configuration
+    # Enable plaintext HTTP listen for the status listen
     enabled: true
-    servicePort: 8001
-    containerPort: 8001
-    # Set a nodePort which is available if service type is NodePort
-    # nodePort: 32080
-    # Additional listen parameters, e.g. "reuseport", "backlog=16384"
+    containerPort: 8100
     parameters: []
 
   tls:
-    # Enable HTTPS listen for the admin API
+    # Enable HTTPS listen for the status listen
+    # Kong versions prior to 2.1 do not support TLS status listens.
+    # This setting must remain false on those versions
+    enabled: false
+    containerPort: 8543
+    parameters: []
+
+
+
+# Specify Kong proxy service configuration
+proxy:
+  enabled: true
+  type: LoadBalancer
+  loadBalancerClass:
+  nameOverride: ""
+  annotations: {}
+  # If terminating TLS at the ELB, the following annotations can be used
+  # "service.beta.kubernetes.io/aws-load-balancer-backend-protocol": "*",
+  # "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled": "true",
+  # "service.beta.kubernetes.io/aws-load-balancer-ssl-cert": "arn:aws:acm:REGION:ACCOUNT:certificate/XXXXXX-XXXXXXX-XXXXXXX-XXXXXXXX",
+  # "service.beta.kubernetes.io/aws-load-balancer-ssl-ports": "kong-proxy-tls",
+  # "service.beta.kubernetes.io/aws-load-balancer-type": "elb"
+  labels:
+    enable-metrics: "true"
+
+  http:
+    # Enable plaintext HTTP listen for the proxy
     enabled: true
-    servicePort: 8444
-    containerPort: 8444
-    # Set a target port for the TLS port in the admin API service, useful when using TLS
-    # termination on an ELB.
-    # overrideServiceTargetPort: 8000
-    # Set a nodePort which is available if service type is NodePort
-    # nodePort: 32443
-    # Additional listen parameters, e.g. "reuseport", "backlog=16384"
+    servicePort: 80
+    containerPort: 8000
+
+  tls:
+    # Enable HTTPS listen for the proxy
+    enabled: true
+    servicePort: 443
+    containerPort: 8443
     parameters:
     - http2
+  stream: []
 
-  # Kong admin ingress settings. Useful if you want to expose the Admin
-  # API of Kong outside the k8s cluster.
-  ingress:
-    # Enable/disable exposure using ingress.
-    enabled: false # true or false
-    ingressClassName: kong
-    # TLS secret name.
-    # tls: kong-admin.example.com-tls
-    # Ingress hostname
-    hostname:
-    # Map of ingress annotations.
-    annotations: {}
-    # Ingress path.
-    path: /
-    # Each path in an Ingress is required to have a corresponding path type. (ImplementationSpecific/Exact/Prefix)
-    pathType: ImplementationSpecific
-# Plugins 
-plugins:
-  configMaps: 
-  - name: kong-plugin-myheader
-    pluginName: myheader
+
+ingressController:
+  enabled: true
+  env:
+    kong_admin_tls_skip_verify: true
+  admissionWebhook:
+    enabled: true
+    failurePolicy: Ignore
+    port: 8080
+    certificate:
+      provided: false
+    namespaceSelector: {}
+    # Specifiy the secretName when the certificate is provided via a TLS secret
+    # secretName: ""
+    # Specifiy the CA bundle of the provided certificate.
+    # This is a PEM encoded CA bundle which will be used to validate the webhook certificate. If unspecified, system trust roots on the apiserver are used.
+    # caBundle:
+    #   | Add the CA bundle content here.
+    service:
+      # Specify custom labels for the validation webhook service.
+      labels: {}
+    # Tune the default Kubernetes timeoutSeconds of 10 seconds
+    # timeoutSeconds: 10
+
+  ingressClass: kong
+  # annotations for IngressClass resource (Kubernetes 1.18+)
+  ingressClassAnnotations: {}
+
+  ## Define any volumes and mounts you want present in the ingress controller container
+  ## Volumes are defined above in deployment.userDefinedVolumes
+  # userDefinedVolumeMounts:
+  # - name: "volumeName"
+  #   mountPath: "/opt/user/dir/mount"
+
+  rbac:
+    # Specifies whether RBAC resources should be created
+    create: true
+
+  # general properties
+  livenessProbe:
+    httpGet:
+      path: "/healthz"
+      port: 10254
+      scheme: HTTP
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: "/readyz"
+      port: 10254
+      scheme: HTTP
+    initialDelaySeconds: 5
+    timeoutSeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+  resources: {}
+
+
+# readinessProbe for Kong pods
+readinessProbe:
+  httpGet:
+    path: "/status/ready"
+    port: status
+    scheme: HTTP
+  initialDelaySeconds: 5
+  timeoutSeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+
+# livenessProbe for Kong pods
+livenessProbe:
+  httpGet:
+    path: "/status"
+    port: status
+    scheme: HTTP
+  initialDelaySeconds: 5
+  timeoutSeconds: 5
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 3
+
+# Annotation to be added to Kong pods
+podAnnotations:
+  kuma.io/gateway: enabled
+  traffic.sidecar.istio.io/includeInboundPorts: ""
+replicaCount: 2
+
+# Annotations to be added to Kong deployment
+deploymentAnnotations: {}
+
+# Enable autoscaling using HorizontalPodAutoscaler
+# When configuring an HPA, you must set resource requests on all containers via
+# "resources" and, if using the controller, "ingressController.resources" in values.yaml
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  behavior: {}
+  ## targetCPUUtilizationPercentage only used if the cluster doesn't support autoscaling/v2 or autoscaling/v2beta
+  targetCPUUtilizationPercentage:
+  ## Otherwise for clusters that do support autoscaling/v2 or autoscaling/v2beta, use metrics
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+
+
+
+
+# securityContext for containers.
+containerSecurityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  runAsUser: 1000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+  capabilities:
+    drop:
+    - ALL

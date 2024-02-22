@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: keycloak
-        image: quay.io/keycloak/keycloak:21.0.1
-        args: ["start","--cache-stack=kubernetes"]
+        image: quay.io/keycloak/keycloak:22.0.0
+        args: ["start-dev","--cache-stack=kubernetes"]
         resources:
           requests:
             memory: "250Mi"
@@ -36,6 +36,18 @@ spec:
           value: "true"
         - name: KC_METRICS_ENABLED
           value: "true"
+        - name: KC_DB
+          value: "postgres"
+        - name: KC_DB_SCHEMA
+          value: "keycloak"
+        - name: KC_DB_URL
+          value: "jdbc:postgresql://192.168.1.2:5432/keycloak"
+        - name: KC_DB_USERNAME
+          value: "keycloak"
+        - name: KC_DB_PASSWORD
+          value: "keycloak"
+        - name: KC_FEATURES
+          value: "admin2, client-secret-rotation"
         ports:
         - name: http
           containerPort: 8080
@@ -61,4 +73,27 @@ spec:
   selector:
     app: keycloak
   type: LoadBalancer
-      
+
+#---
+#
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  name: keycloak-ingress
+#  annotations:
+#    konghq.com/strip-path: "true"
+#  labels:
+#    name: keycloak-ingress
+#spec:
+#  ingressClassName: kong
+#  rules:
+#  - host: keycloak.fvillanueva.pe
+#    http:
+#        paths:
+#        - pathType: Prefix
+#          path: "/"
+#          backend:
+#            service:
+#              name: keycloak
+#              port: 
+#                number: 8080
